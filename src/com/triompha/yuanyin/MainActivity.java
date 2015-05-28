@@ -2,103 +2,110 @@ package com.triompha.yuanyin;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import com.triompha.yuanyin.AutoListView.OnRefreshListener;
 import com.triompha.yuanyin.R;
-import com.triompha.yuanyin.LoadDataService.Content;
-import com.triompha.yuanyin.db.DBManager;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
+import android.app.ListActivity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.StrictMode;
-import android.support.v4.view.ViewPager;
-import android.text.method.LinkMovementMethod;
-import android.view.Display;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.ScrollView;
-import android.widget.TextView;
+import android.os.Handler;
+import android.os.Message;
 
-@SuppressLint("NewApi")
-public class MainActivity extends Activity {
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
-    private List<ScrollView> imageViewList;
-    private ViewPager mViewPager;
-    public static final int initTabSize = 5;
-    
+                // Toast.makeText(MainActivity.this, "正在刷新", Toast.LENGTH_SHORT).show();
+
+public class MainActivity extends ListActivity {
+
+    public static final int INIT_TITLE_SIZE = 30;
     private int deviceWidth;
+
+
+    AutoListView listView;
+    ArrayAdapter<String> arrayAdapter;
+
+    public LoadDataService loadDataService;
     
-    public  LoadDataService loadDataService; 
+    
+    private Handler handler = new Handler(new Handler.Callback() {
+        public boolean handleMessage(Message msg) {
+            @SuppressWarnings("unchecked")
+            List<String> result = (List<String>) msg.obj;
+            listView.onRefreshComplete();
+            //只有真正获取到数据的时候才更新列表
+            if(result!=null && result.size()>0){
+                arrayAdapter.clear();
+                arrayAdapter.addAll(result);
+            }
+            return true;
+        }
+    }); 
+
+
+    //加载数据
+    private void loadData(final boolean init ) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Message msg = handler.obtainMessage();
+                Boolean loadLatestNews = loadDataService.loadLatestNews();
+                msg.obj = null;
+                if(loadLatestNews || init){
+                   msg.obj = loadDataService.getLastestTitles(INIT_TITLE_SIZE);
+                }
+                
+                if(init && (msg.obj==null || ((List<String>) msg.obj).size()==0) ){
+                   loadDataService.loadData(10);
+                   msg.obj = loadDataService.getLastestTitles(INIT_TITLE_SIZE);
+                }
+                
+                handler.sendMessage(msg);
+            }
+        }).start();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        fullScreen();
         super.onCreate(savedInstanceState);
-        
         setContentView(R.layout.activity_main);
-        Display display = getWindowManager().getDefaultDisplay();
+        initPro();
+        setListAdapter(arrayAdapter);
+        loadData(true);
 
-        deviceWidth =display.getWidth();
-        
-        
-        loadDataService = new LoadDataService(deviceWidth, new DBManager(this));
-        
-        // 设置无标题
-//        requestWindowFeature(Window.FEATURE_NO_TITLE);
-//        // 设置全屏
-//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        //设置为主显示
-        
-        
-        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-        .detectDiskReads()
-        .detectDiskWrites()
-        .detectNetwork()
-        .penaltyLog()
-        .build());
-StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-        .detectLeakedSqlLiteObjects()
-        .detectLeakedClosableObjects()
-        .penaltyLog()
-        .penaltyDeath()
-        .build());
-        
-        initView();
-    }
+        findViewById(R.id.goto_first).setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                MainActivity.this.onListItemClick(null, null, 0, 0);
+            }
+        });
 
-    public void initView() {
-        
-        mViewPager = (ViewPager) findViewById(R.id.viewpager);
-        prepareData();
-        ViewPagerAdapter adapter = new ViewPagerAdapter(imageViewList);
-        mViewPager.setAdapter(adapter);
-        mViewPager.setOnPageChangeListener(new ViewPageChangeListener(imageViewList,loadDataService,this));
-        mViewPager.setCurrentItem(0);
-    }
-
-    private void prepareData() {
-        imageViewList = new ArrayList<ScrollView>();
-        ScrollView iv;
-        for (int i = 0; i < initTabSize; i++) {
-            iv = new ScrollView(this);
-            TextView textView = new TextView(this);
-            textView.setMovementMethod(LinkMovementMethod.getInstance());
-            iv.addView(textView);
-            imageViewList.add(iv);
-        }
-        //初始化第一个tab的内容
-//        fullScreen();
-        Content loadData = loadDataService.loadData(0);
-        ((TextView)imageViewList.get(0).getChildAt(0) ).setText(loadData.getContent());
-        setTitle(loadData.getTitle());
-//        fullScreen();
     }
     
-    private void fullScreen(){
-        // 设置无标题
-      requestWindowFeature(Window.FEATURE_NO_TITLE);
-//      // 设置全屏
-      getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    private void initPro(){
+        loadDataService = new LoadDataService(this,deviceWidth);
+        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,new ArrayList<String>());
+        listView = (AutoListView) findViewById(android.R.id.list);
+        listView.setLoadEnable(false);
+        listView.setOnRefreshListener(new OnRefreshListener() {
+            public void onRefresh() {
+                loadData(false);
+            }
+        });
+        arrayAdapter.setNotifyOnChange(true);
+    }
+
+    /****
+     * 绑定每个子项点击方法
+     */
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        Intent intent = new Intent(MainActivity.this, ViewActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putInt("position", position-1);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 
 }

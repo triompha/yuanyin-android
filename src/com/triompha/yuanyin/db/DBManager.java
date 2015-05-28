@@ -2,6 +2,7 @@ package com.triompha.yuanyin.db;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import android.content.ContentValues;
@@ -20,6 +21,21 @@ public class DBManager {
         db = helper.getWritableDatabase();
     }
     
+    
+   public List<String>  listTopTitles(int size){
+       Cursor c = db.rawQuery("SELECT title FROM news order by sid desc limit 0,?", new String[]{size+""}); 
+       List<String> titles = new ArrayList<String>(size);
+       while (c.moveToNext()) {
+           String string = c.getString(c.getColumnIndex("title"));
+           int _index = string.indexOf("-");
+           if(_index>0){
+               string= string.substring(0, _index-1);
+           }
+           titles.add(string);
+       }
+       c.close();
+       return  titles;
+   }
     
     
     public long add(News news){

@@ -4,9 +4,11 @@ import java.net.URL;
 import java.util.List;
 
 import com.triompha.yuanyin.LoadDataService.Content;
+import com.triompha.yuanyin.util.FillterTitle;
 
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
+import android.os.Message;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.text.Html;
 import android.text.Html.ImageGetter;
@@ -50,30 +52,24 @@ public class ViewPageChangeListener implements OnPageChangeListener {
         this.activity = activity;
     }
 
-    public void onPageScrollStateChanged(int arg0) {
-        // TODO Auto-generated method stub
-        
-    }
+    public void onPageScrollStateChanged(int arg0) {}
 
-    public void onPageScrolled(int arg0, float arg1, int arg2) {
-        // TODO Auto-generated method stub
-        
-    }
+    public void onPageScrolled(int arg0, float arg1, int arg2) {}
 
-    public void onPageSelected(int position) {
+    public void onPageSelected(final int position) {
         ScrollView scrollView = imageViewList.get(position % imageViewList.size());
-        TextView childAt = (TextView) scrollView.getChildAt(0);
+        final TextView childAt = (TextView) scrollView.getChildAt(0);
         Content loadData = loadDataService.loadData(position);
-        childAt.setText(loadData.getContent());
-        activity.setTitle(loadData.getTitle());
-//        fullScreen(activity);
+        childAt.setText(loadData.getContent()); 
+        ((TextView)activity.findViewById(R.id.news_title)).setText(FillterTitle.filter(loadData.getTitle()));
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Content loadData = loadDataService.loadData(position);
+//                childAt.setText(loadData.getContent());
+//            }
+//        }).start();
     }
     
-    private void fullScreen(Activity activity){
-        // 设置无标题
-      activity.requestWindowFeature(Window.FEATURE_NO_TITLE);
-//      // 设置全屏
-      activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-    }
 
 }
