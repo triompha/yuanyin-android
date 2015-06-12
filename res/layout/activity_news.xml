@@ -15,7 +15,7 @@
         android:layout_width="fill_parent"  
         android:layout_height="wrap_content"  
         android:layout_alignBottom="@id/viewpager"  
-        android:background="#080808"  
+        android:background="#C9F3C9"  
         android:orientation="vertical"  
         android:padding="5dip" >  
   

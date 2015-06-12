@@ -62,6 +62,7 @@ public class ViewActivity extends Activity {
             scrollView = new ScrollView(this);
             TextView textView = new TextView(this);
             textView.setMovementMethod(LinkMovementMethod.getInstance());
+            textView.setBackgroundColor(android.graphics.Color.parseColor("#C9F3C9"));
             textView.setOnLongClickListener(new OnLongClickListener() {
                 
                 public boolean onLongClick(View v) {

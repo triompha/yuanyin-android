@@ -75,11 +75,11 @@ public class MainActivity extends ListActivity {
         setListAdapter(arrayAdapter);
         loadData(true);
 
-        findViewById(R.id.goto_first).setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                MainActivity.this.onListItemClick(null, null, 0, 0);
-            }
-        });
+//        findViewById(R.id.goto_first).setOnClickListener(new OnClickListener() {
+//            public void onClick(View v) {
+//                MainActivity.this.onListItemClick(null, null, 0, 0);
+//            }
+//        });
 
     }
     
