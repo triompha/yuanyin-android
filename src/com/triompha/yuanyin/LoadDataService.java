@@ -136,7 +136,7 @@ public class LoadDataService {
             // 检查是否有数据
             News news = dbManager.get(0);
             if (news == null) {
-                initData("http://www.triompha.com:8080/r/news/down/10");
+                initData("http://www.triompha.com:8080/r/news/top/10");
             }
 
             // 不太严谨，暂时先这样
