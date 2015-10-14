@@ -75,6 +75,7 @@ public class AutoListView extends ListView implements OnScrollListener {
     private OnLoadListener onLoadListener;
 
     public AutoListView(Context context) {
+//        android.R.style.Theme_Light 
         super(context);
         initView(context);
     }
